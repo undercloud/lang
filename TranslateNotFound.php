@@ -1,5 +1,9 @@
 <?php
+
 	namespace Undercloud\Lang;
 
-	class TranslateNotFound {}
+	class TranslateNotFound
+	{
+		/* nobody */
+	}
 ?>

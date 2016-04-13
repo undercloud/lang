@@ -1,5 +1,8 @@
 <?php
+
 	namespace Undercloud\Lang;
+
+	use Undercloud\Lang\Parser\AbstractParser;
 
 	class Storage
 	{
@@ -14,7 +17,7 @@
 			return $this;
 		}
 
-		public function setParser($parser)
+		public function setParser(AbstractParser $parser)
 		{
 			$this->parser = $parser;
 
@@ -25,7 +28,7 @@
 		{
 			$keys   = explode('.', $message);
 			$entity = array_shift($keys);
-			
+
 			if (false == isset($this->stack[$locale][$entity])) {
 				$arguments = array();
 
@@ -39,7 +42,7 @@
 				$this->stack[$locale][$entity] = call_user_func_array(array($this->parser, 'parse'), $arguments);
 			}
 
-			$array = &$this->stack[$locale][$entity]; 
+			$array = $this->stack[$locale][$entity];
 
 			foreach ($keys as $key) {
 				if (isset($array[$key])) {

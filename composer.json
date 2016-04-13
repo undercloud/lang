@@ -1,0 +1,19 @@
+{
+	"name": "undercloud/lang",
+	"description": "PHP Multilanguage System",
+	"keywords": ["lang","language","translate"],
+	"homepage": "https://github.com//undercloud/lang",
+	"license": "MIT",
+	"authors": [
+		{
+			"name": "undercloud",
+			"email": "lodashes@gmail.com"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0"
+	},
+	"autoload": {
+		"files": ["Lang.php"]
+	}
+}

@@ -6,8 +6,6 @@
 	use Undercloud\Lang\TranslateNotFound;
 	use Undercloud\Lang\Parser\DefaultParser;
 
-	error_reporting(E_ALL);
-
 	require_once __DIR__ . '/Storage.php';
 	require_once __DIR__ . '/LangIterator.php';
 	require_once __DIR__ . '/TranslateNotFound.php';
@@ -23,27 +21,36 @@
 
 		public function __construct(array $options = array())
 		{
-			if (false == isset($options['lang'])) {
-				$options['lang'] = $this->getLangsHttp();
+			if (false == isset($options['accept'])) {
+				$options['accept'] = $this->getLangsHttp();
 			}
+
+			if (false == isset($options['avail'])) {
+				$options['avail'] = array();
+			}
+
+			$options['lang'] = array_values(
+				array_intersect(
+					$options['accept'],
+					$options['avail']
+				)
+			);
 
 			$this->options = $options;
 
 			$this->iterator = new LangIterator($options['lang']);
 
-			$storage = new Storage();
+			$this->storage = new Storage();
 
 			if (isset($options['root'])) {
-				$storage->setRoot($options['root']);
+				$this->storage->setRoot($options['root']);
 			}
 
-			if (isset($options['parser'])) {
-				$storage->setParser($options['parser']);
-			} else {
-				$storage->setParser(new DefaultParser);
-			}
-
-			$this->storage = $storage;
+			$this->storage->setParser(
+				isset($options['parser'])
+				? $options['parser']
+				: (new DefaultParser)
+			);
 		}
 
 		public function getLangsHttp(array $default = array('en'))
@@ -53,8 +60,11 @@
 
 				$langs = preg_replace('~;q=[0-9].[0-9]~i', '', $langs);
 				$langs = strtolower($langs);
-				$langs = str_replace(array('-','_'), '.', $langs);
 				$langs = explode(',', $langs);
+
+				if (!$langs) {
+					return $default;
+				}
 
 				return $langs;
 			} else {
@@ -62,27 +72,17 @@
 			}
 		}
 
-		public function call($fn, $arguments)
+		public function getPrimaryLocale()
 		{
-
+			return reset($this->options['lang']);
 		}
 
-		public function __call($fn, $arguments)
+		public function getFallBackLocale()
 		{
-			return $this->call($fn, $arguments);
+			return end($this->options['lang']);
 		}
 
-		public static function __callStatic($fn, $arguments)
-		{
-			return $this->call($fn, $arguments);
-		}
-
-		public function __invoke($message, array $assoc = array())
-		{
-			return $this->get($message, $assoc);
-		}
-
-		public function assign($message, $placeholders = array())
+		public function assign($message, array $placeholders = array())
 		{
 			$index = 0;
 			foreach ($placeholders as $key => $value) {
@@ -104,6 +104,11 @@
 			return vsprintf($message, array_values($placeholders));
 		}
 
+		public function __invoke($message, array $assoc = array())
+		{
+			return $this->get($message, $assoc);
+		}
+
 		public function get($message, array $assoc = array())
 		{
 			$current = $this->iterator->current();
@@ -114,7 +119,7 @@
 				$this->iterator->next();
 
 				if ($this->iterator->valid()) {
-					return $this->get($message);
+					return $this->get($message, $assoc);
 				} else {
 					return;
 				}
