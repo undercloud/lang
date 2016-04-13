@@ -77,7 +77,7 @@ class MyOwnParser extends AbstractParser
 		$locale = func_get_arg(0);
 		$entity = func_get_arg(1);
 
-
+		/*...*/
 	}
 }
 ```
